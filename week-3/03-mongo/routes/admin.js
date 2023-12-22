@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const isAdminExists = require("../middleware/admin");
-const { Admin } = require("../db");
+const { isAdminAuth, isAdminExists } = require("../middleware/admin");
+const { Admin, Course } = require("../db");
 
 const router = Router();
 
@@ -8,8 +8,8 @@ const router = Router();
 router.post("/signup", isAdminExists, async (req, res) => {
 	const { username, password } = req.body;
 
-	const admin = new Admin({ username: username, password: password });
-	admin
+	const newAdmin = new Admin({ username: username, password: password });
+	newAdmin
 		.save()
 		.then(() => res.json({ message: "Admin created successfully." }))
 		.catch((err) => {
@@ -20,11 +20,32 @@ router.post("/signup", isAdminExists, async (req, res) => {
 		});
 });
 
-router.post("/courses", isAdminExists, (req, res) => {
-	// Implement course creation logic
+router.post("/courses", isAdminAuth, (req, res) => {
+	const { title, description, price, imageLink } = req.body;
+
+	if (!title || !description || !price || !imageLink) {
+		res.status(400).json({ message: "Incomplete course data." });
+		return;
+	}
+
+	const newCourse = new Course({ title, description, price, imageLink });
+	newCourse
+		.save()
+		.then(() =>
+			res.json({
+				message: "Course created successfully.",
+				courseId: newCourse._id,
+			})
+		)
+		.catch((err) => {
+			console.error(err);
+			res.status(400).json({
+				message: "Could not create course. Please contact support.",
+			});
+		});
 });
 
-router.get("/courses", isAdminExists, (req, res) => {
+router.get("/courses", isAdminAuth, (req, res) => {
 	// Implement fetching all courses logic
 });
 
