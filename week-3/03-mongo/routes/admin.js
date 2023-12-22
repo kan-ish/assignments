@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { isAdminAuth, isAdminExists } = require("../middleware/admin");
+const { authenticateAdmin, isAdminExists } = require("../middleware/admin");
 const { Admin, Course } = require("../db");
 
 const router = Router();
@@ -20,7 +20,7 @@ router.post("/signup", isAdminExists, async (req, res) => {
 		});
 });
 
-router.post("/courses", isAdminAuth, (req, res) => {
+router.post("/courses", authenticateAdmin, (req, res) => {
 	const { title, description, price, imageLink } = req.body;
 
 	if (!title || !description || !price || !imageLink) {
@@ -45,7 +45,7 @@ router.post("/courses", isAdminAuth, (req, res) => {
 		});
 });
 
-router.get("/courses", isAdminAuth, async (req, res) => {
+router.get("/courses", authenticateAdmin, async (req, res) => {
 	const courses = await Course.find();
 
 	res.json({ courses: courses });

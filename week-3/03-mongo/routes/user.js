@@ -1,14 +1,13 @@
 const { User } = require("../db/index");
 const { Router } = require("express");
 const router = Router();
-const iseUserExists = require("../middleware/user");
+const { iseUserExists, authenticateUser } = require("../middleware/user");
 
 // User Routes
 router.post("/signup", iseUserExists, (req, res) => {
 	const { username, password } = req.body;
 
 	const newUser = new User({ username: username, password: password });
-	console.log(newUser);
 	newUser
 		.save()
 		.then(() => res.json({ message: "User created successfully." }))
@@ -20,8 +19,8 @@ router.post("/signup", iseUserExists, (req, res) => {
 		});
 });
 
-router.get("/courses", (req, res) => {
-	// Implement listing all courses logic
+router.get("/courses", authenticateUser, (req, res) => {
+	res.send("received");
 });
 
 router.post("/courses/:courseId", (req, res) => {

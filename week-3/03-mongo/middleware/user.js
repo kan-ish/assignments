@@ -26,4 +26,10 @@ async function iseUserExists(req, res, next) {
 	}
 }
 
-module.exports = iseUserExists;
+async function authenticateUser(req, res, next) {
+	const { username, password } = req.headers;
+
+	next();
+}
+
+module.exports = { iseUserExists, authenticateUser };
