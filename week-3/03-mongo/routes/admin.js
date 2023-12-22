@@ -45,8 +45,10 @@ router.post("/courses", isAdminAuth, (req, res) => {
 		});
 });
 
-router.get("/courses", isAdminAuth, (req, res) => {
-	// Implement fetching all courses logic
+router.get("/courses", isAdminAuth, async (req, res) => {
+	const courses = await Course.find();
+
+	res.json({ courses: courses });
 });
 
 module.exports = router;
