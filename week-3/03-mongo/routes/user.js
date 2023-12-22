@@ -29,30 +29,42 @@ router.post("/courses/:courseId", authenticateUser, async (req, res) => {
 	const { username } = req.headers;
 	const { courseId } = req.params;
 
-	const course = await Course.findById({ _id: courseId });
+	try {
+		const course = await Course.findById({ _id: courseId });
 
-	//
-	// Check if course is already purchased
-	//
+		if (!course) {
+			console.log("not found");
+			res.status(400).json({ message: "Sorry, the course does not exist." });
+			return;
+		} else {
+			const user = await User.findOne({ username: username });
+			if (user.purchasedCourses.includes(course._id)) {
+				res
+					.status(400)
+					.json({ message: "You already have this course in your purchases!" });
+				return;
+			} else {
+				const updatedUser = await User.findOneAndUpdate(
+					{ username: username },
+					{ $addToSet: { purchasedCourses: course._id } },
+					{ new: true }
+				);
 
-	if (!course) {
-		res.status(400).json({ message: "Sorry, the course does not exist." });
-		return;
-	} else {
-		const updatedUser = await User.findOneAndUpdate(
-			{ username: username },
-			{ $push: { purchasedCourses: course._id } },
-			{ new: true }
-		);
-		updatedUser
-			.save()
-			.then(() => {
-				console.log(updatedUser);
-				res.json({ message: "Course purchased successfully" });
-			})
-			.catch((err) => {
-				console.error(err);
-			});
+				updatedUser
+					.save()
+					.then(() => {
+						console.log(updatedUser);
+						res.json({ message: "Course purchased successfully" });
+					})
+					.catch((err) => {
+						console.error(err);
+					});
+			}
+		}
+	} catch (err) {
+		res
+			.status(400)
+			.json({ message: "Something went wrong. Please try again." });
 	}
 });
 
