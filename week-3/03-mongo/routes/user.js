@@ -38,10 +38,12 @@ router.post("/courses/:courseId", authenticateUser, async (req, res) => {
 			return;
 		} else {
 			const user = await User.findOne({ username: username });
+
 			if (user.purchasedCourses.includes(course._id)) {
 				res
 					.status(400)
 					.json({ message: "You already have this course in your purchases!" });
+
 				return;
 			} else {
 				const updatedUser = await User.findOneAndUpdate(
@@ -68,8 +70,14 @@ router.post("/courses/:courseId", authenticateUser, async (req, res) => {
 	}
 });
 
-router.get("/purchasedCourses", (req, res) => {
-	// Implement fetching purchased courses logic
+router.get("/purchasedCourses", authenticateUser, async (req, res) => {
+	const { username } = req.headers;
+
+	const user = await User.findOne({ username: username }).populate(
+		"purchasedCourses"
+	);
+
+	res.json({ purchasedCourses: user.purchasedCourses });
 });
 
 module.exports = router;
