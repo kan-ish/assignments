@@ -1,4 +1,4 @@
-const { User } = require("../db/index");
+const { User, Course } = require("../db/index");
 const { Router } = require("express");
 const router = Router();
 const { iseUserExists, authenticateUser } = require("../middleware/user");
@@ -19,12 +19,41 @@ router.post("/signup", iseUserExists, (req, res) => {
 		});
 });
 
-router.get("/courses", authenticateUser, (req, res) => {
-	res.send("received");
+router.get("/courses", authenticateUser, async (req, res) => {
+	const courses = await Course.find();
+
+	res.json({ courses: courses });
 });
 
-router.post("/courses/:courseId", (req, res) => {
-	// Implement course purchase logic
+router.post("/courses/:courseId", authenticateUser, async (req, res) => {
+	const { username } = req.headers;
+	const { courseId } = req.params;
+
+	const course = await Course.findById({ _id: courseId });
+
+	//
+	// Check if course is already purchased
+	//
+
+	if (!course) {
+		res.status(400).json({ message: "Sorry, the course does not exist." });
+		return;
+	} else {
+		const updatedUser = await User.findOneAndUpdate(
+			{ username: username },
+			{ $push: { purchasedCourses: course._id } },
+			{ new: true }
+		);
+		updatedUser
+			.save()
+			.then(() => {
+				console.log(updatedUser);
+				res.json({ message: "Course purchased successfully" });
+			})
+			.catch((err) => {
+				console.error(err);
+			});
+	}
 });
 
 router.get("/purchasedCourses", (req, res) => {
