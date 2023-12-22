@@ -35,26 +35,26 @@ async function authenticateAdmin(req, res, next) {
 		res.status(400).json({
 			message: "Invalid credentials.",
 		});
-	}
+	} else {
+		try {
+			const admin = await Admin.findOne({ username: username });
 
-	try {
-		const admin = await Admin.findOne({ username: username });
-
-		if (!admin) {
-			res.status(401).json({
-				message: "User does nto exist. Please signup first.",
+			if (!admin) {
+				res.status(401).json({
+					message: "User does nto exist. Please signup first.",
+				});
+			} else if (admin.password !== password) {
+				res.status(401).json({
+					message: "Wrong username or password. Please try again.",
+				});
+			} else {
+				next();
+			}
+		} catch (err) {
+			res.status(400).json({
+				message: "Something went wrong. Please contact support",
 			});
-		} else if (admin.password !== password) {
-			res.status(401).json({
-				message: "Wrong username or password. Please try again.",
-			});
-		} else {
-			next();
 		}
-	} catch (err) {
-		res.status(400).json({
-			message: "Something went wrong. Please contact support",
-		});
 	}
 }
 
