@@ -33,26 +33,26 @@ async function authenticateUser(req, res, next) {
 		res.status(400).json({
 			message: "Invalid credentials.",
 		});
-	}
+	} else {
+		try {
+			const user = await User.findOne({ username: username });
 
-	try {
-		const user = await User.findOne({ username: username });
-
-		if (!user) {
-			res.status(401).json({
-				message: "User does nto exist. Please signup first.",
+			if (!user) {
+				res.status(401).json({
+					message: "User does nto exist. Please signup first.",
+				});
+			} else if (user.password !== password) {
+				res.status(401).json({
+					message: "Wrong username or password. Please try again.",
+				});
+			} else {
+				next();
+			}
+		} catch (err) {
+			res.status(400).json({
+				message: "Something went wrong. Please contact support",
 			});
-		} else if (user.password !== password) {
-			res.status(401).json({
-				message: "Wrong username or password. Please try again.",
-			});
-		} else {
-			next();
 		}
-	} catch (err) {
-		res.status(400).json({
-			message: "Something went wrong. Please contact support",
-		});
 	}
 }
 
